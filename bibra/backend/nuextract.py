@@ -33,6 +33,7 @@ class NuExtractConfig(BaseModel):
     thinking: BoolStr = Field(default=False, description="Enable thinking mode")
     instructions: str = Field(default="", description="Custom instructions")
     dpi: IntStr = Field(default=170, ge=1, description="DPI for PDF rendering")
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0, description="Sampling temperature for metadata extraction")
 
 
 COAR_TYPES = [
@@ -213,6 +214,7 @@ class NuExtractBackend(BaseBackend[NuExtractConfig]):
         result = await self.agent.run(
             user_message,
             model_settings={
+                "temperature": self.cfg.temperature,
                 "extra_body": {
                     "chat_template_kwargs": chat_template_kwargs,
                 }

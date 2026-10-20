@@ -1,0 +1,25 @@
+[defaults]
+# Default settings for all projects (each project can override)
+# api_key = "${LLM_API_KEY}"
+# endpoint = "${LLM_ENDPOINT_URL}"
+#extra_headers = { MyHeader = "${MY_ENV}" }
+
+# [greylitlm]
+# name = "GreyLitLM project"
+# backend = "greylitlm"
+# model = "${GREYLITLM_MODEL}"
+# model = "qwen3.5-122b-a10b"
+# api_key = ""
+# endpoint = "http://localhost:9173/v1/"
+
+[nuextract]
+name = "NuExtract3"
+backend = "nuextract"
+model = "numind/NuExtract3"
+thinking = false
+dpi = 200
+temperature = 0.0
+api_key = ""
+endpoint = "http://localhost:9514/v1/"
+
+
