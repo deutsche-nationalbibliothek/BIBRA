@@ -15,7 +15,7 @@ from pydantic_ai.providers.openai import OpenAIProvider
 
 from bibra.backend.base import BaseBackend
 from bibra.backend.config import GlobalLLMConfig, parse_bool_or_str, parse_int_or_str
-from bibra.types import PublicationMetadata
+from bibra.types import PublicationMetadata, NUEXTRACT_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
@@ -66,23 +66,6 @@ COAR_TYPES = [
     "working paper",
     "project deliverable",
 ]
-
-# Default extraction template matching nuextract3 expectations
-NUEXTRACT_TEMPLATE = {
-    "language": "language-tag",
-    "title": "string",
-    "alt_title": "string",
-    "creator": ["string"],
-    "year": "date",
-    "publisher": ["string"],
-    "doi": "string",
-    "e-isbn": ["string"],
-    "p-isbn": ["string"],
-    "e-issn": "string",
-    "p-issn": "string",
-    "type_coar": COAR_TYPES,
-}
-
 
 # Pages to render: first six pages + last two pages
 PAGES = [0, 1, 2, 3, 4, 5, -2, -1]
