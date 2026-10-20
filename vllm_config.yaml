@@ -1,0 +1,17 @@
+model: numind/NuExtract3
+port: 9513
+chat_template_content_format: openai
+trust_remote_code: true
+generation_config: vllm
+gpu_memory_utilization: 0.3
+enable_auto_tool_choice: true
+tool_call_parser: hermes
+max_model_len: 32000
+limit_mm_per_prompt:
+  image: 8
+  video: 0
+speculative_config:
+  method: "qwen3_next_mtp"
+  num_speculative_tokens: 2
+
+

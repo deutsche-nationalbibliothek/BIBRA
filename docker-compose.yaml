@@ -1,0 +1,58 @@
+services:
+  bibra:
+    image: quay.io/natlibfi/bibra:latest
+    container_name: bibra
+    # depends_on:
+    #   - llama-cpp
+    env_file:
+      - .env
+    environment:
+      LLM_ENDPOINT_URL: ${LLM_ENDPOINT_URL:-http://llama-cpp:8000/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-dummy-api-key}
+      GREYLITLM_MODEL: ${GREYLITLM_MODEL:-gemma-3-4b-it-GreyLitLM-Q8_0.gguf}
+    ports:
+      - "${BIBRA_HOST_PORT:-8123}:8000"
+
+  llama-cpp:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    container_name: llama-cpp-server
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              # GPU-0: GPU-c33c3b83-08c1-4e49-96f7-9ab1c6be7d23
+              # GPU-1: GPU-3cce1cf1-71b5-6d8e-2fd3-1f54d1b89d24
+              device_ids: ['GPU-c33c3b83-08c1-4e49-96f7-9ab1c6be7d23']
+              capabilities: [compute, utility]
+    command: >
+      -m /models/gemma-3-4b-it-GreyLitLM-Q8_0.gguf 
+      -ngl 99
+      --host 0.0.0.0
+      --port 8000
+    volumes:
+      - /opt/llama/models:/models:ro
+    ports:
+      - "${LLAMA_CPP_HOST_PORT:-9173}:8000"
+
+  nuextract-vllm:
+    image: vllm/vllm-openai:latest
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['GPU-c33c3b83-08c1-4e49-96f7-9ab1c6be7d23'] # GPU_0
+              # device_ids: ['GPU-3cce1cf1-71b5-6d8e-2fd3-1f54d1b89d24'] # GPU_1              
+              capabilities: [compute, utility]
+    volumes:
+      - /home/huggingface-cache/:/root/.cache/huggingface
+      - ./vllm_config.yaml:/app/config/vllm_config.yaml
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+    ports:
+      - "9513:9513"
+    ipc: host
+    command: --config /app/config/vllm_config.yaml
