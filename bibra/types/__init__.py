@@ -57,26 +57,68 @@ class PublicationMetadata(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     # Title information
-    title: str | None = None
-    subtitle: str | None = None
-    original_title: str | None = None
+    title: str | None = Field(
+        default=None, 
+        description="The main title of the work as presented on the title page. Extract the principal title, excluding the subtitle and other bibliographic information. Preserve the source language. Return null if the title cannot be determined."
+        ) 
+    subtitle: str | None = Field(
+        default=None,
+        description="The secondary title element that qualifies, explains, or further specifies the main title. It is part of the formal title, not merely descriptive text. Preserve the source language. Return null if no subtitle is present."
+        )
+    original_title: str | None = Field(
+        default=None,
+        description="The title of the original work in its original language, when the publication is a translation. Extract the original title only when it is explicitly stated in the publication. Do not infer it from external knowledge. Preserve the source language. Return null if no original title can be determined."
+        )
 
     # Creators and contributors
-    creator: str | None = None
-    additional_creators: list[str] = Field(default=list)
-    corporate_body: str | None = None
-    additional_corporate_bodies: list[str] = Field(default=list)
+    creator: str | None = Field(
+        default=None,
+        description="The person primarily responsible for the intellectual or artistic creation of the work. Extract the person's name as presented in the publication. Preserve the source language. Return null if no primary individual creator can be determined."
+        )
+    additional_creators: list[str] = Field(
+        default=list,
+        description="People explicitly credited with additional intellectual or artistic contributions to the work other than the primary creator. Examples include translators, editors, illustrators, etc. Extract each person's name separately. Preserve the source language. Do not duplicate the primary creator. Return an empty list if no additional creators can be identified."
+        )
+    corporate_body: str | None = Field(
+        default=None,
+        description="The name of the corporate body primarily responsible for the intellectual or artistic creation of the work. A corporate body is an organization or collective entity, such as a university, government agency, association, institution, or conference. Extract its name as presented in the publication. Preserve the source language. Do not classify a publisher as a creator solely because it publishes the work. Return null if no primary corporate body can be determined."
+        )
+    additional_corporate_bodies: list[str] = Field(
+        default=list,
+        description="Additional corporate bodies explicitly credited with intellectual or artistic responsibility for the work, other than the primary creative responsibility. Extract each corporate body's name separately. Preserve the source language. Do not classify a publisher as a creator solely because it publishes the work. Do not duplicate the primary corporate body. Return an empty list if no other corporate bodies can be identified."
+        )
 
     # Identifiers
-    p_isbn: list[str] = Field(default=list)
+    p_isbn: list[str] = Field(
+        default=list,
+        description="The ISBN or ISBNs explicitly assigned to the printed edition represented by the publication. Extract each ISBN exactly as printed, normalizing only formatting such as spaces or hyphens. Do not infer, reconstruct, or obtain ISBNs from external sources. Return an empty list if no print ISBN can be determined."
+        )
 
     # Publication details
-    language_publication: str | None = None
-    year: str | None = None
-    publication_place: str | None = None
-    publisher: list[str] = Field(default=list)
-    edition: str | None = None
-    page_extent: str | None = None
+    language_publication: str | None = Field(
+        default=None,
+        description="The language in which the publication is presented. Return as ISO 639-2/B code. For a translation, identify the language of the translated text, not the language of the original work. Return null if the publication language cannot be determined."
+        )
+    year: str | None = Field(
+        default=None,
+        description="The year in which the publication was published. Do not confuse it with the publication year of the original work, reprint year, or year of translation. If no publication year is stated but a copyright year is available, return the copyright year in square brackets, for example [2024]. Return null if no year can be determined."
+        )
+    publication_place: str | None = Field(
+        default=None,
+        description="The place of publication, typically a city or town. Extract the city/place associated with the publisher in the publication statement. Extract the place as presented in the publication. Preserve the source language. Return null if no publication place can be determined."
+        )
+    publisher: list[str] = Field(
+        default=list,
+        description="The publishing entity responsible for publishing the specific publication. Extract each publisher's name as presented in the publication. Prefer the publisher name shown on the title page over publisher name given in the imprint. Preserve the source language and letter case. If multiple publishers are explicitly credited, extract each publisher separately. Return an empty list if no publisher can be determined."
+        )
+    edition: str | None = Field(
+        default=None,
+        description="The edition statement identifying the specific edition of the work. Extract the edition as presented in the publication. Preserve the source language. Return null if no edition statement is given."
+        )
+    page_extent: str | None = Field(
+        default=None,
+        description="The pagination or page extent of the specific publication, as stated in the publication. Do not count the pages present in the scanned PDF, since the scan may contain only selected pages of the publication. Preserve complex pagination statements when necessary, for example “xii, 245 Seiten”. Return the statement in German. Return null if the page extent cannot be determined."
+        )
 
 
 # Extraction template matching nuextract3 expectations
