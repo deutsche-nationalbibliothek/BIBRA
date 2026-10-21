@@ -228,3 +228,6 @@ cypress/cache/
 # BIBRA project configuration (copy from projects.toml.example)
 # /projects.toml
 plans
+
+# VS Code
+.vscode/

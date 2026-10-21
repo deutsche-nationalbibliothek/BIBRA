@@ -101,6 +101,31 @@ def _pdf_pages_to_binary_content(pdf_path: str, dpi: int = 170) -> list[BinaryCo
 
     return contents
 
+def _build_field_instructions() -> str:
+    """Build extraction instructions from PublicationMetadata descriptions."""
+    header = "Use the following field definitions and extraction rules:"
+
+    lines = []
+    for name, field in PublicationMetadata.model_fields.items():
+        description = field.description.strip() if field.description else None
+        if description:
+            lines.append(f"- {name}: {description}")
+
+    if not lines:
+        return ""
+    
+    return "\n".join([header, *lines])
+
+def _build_instructions(general_instructions: str, field_instructions: str) -> str:
+    """Merge general instructions with field instructions for metadata extraction."""
+    instructions = "\n\n".join(
+        part 
+        for part in (general_instructions.strip(), field_instructions.strip()) 
+        if part
+    )
+    
+    return instructions
+
 
 class NuExtractBackend(BaseBackend[NuExtractConfig]):
     """Backend for metadata extraction using nuextract3 vision model."""
@@ -186,8 +211,12 @@ class NuExtractBackend(BaseBackend[NuExtractConfig]):
             "template": json.dumps(NUEXTRACT_TEMPLATE, indent=4),
             "enable_thinking": self.cfg.thinking,
         }
-        if self.cfg.instructions:
-            chat_template_kwargs["instructions"] = self.cfg.instructions
+        instructions = _build_instructions(
+            general_instructions=self.cfg.instructions,
+            field_instructions=_build_field_instructions(),
+        )
+        if instructions:
+            chat_template_kwargs["instructions"] = instructions
 
         user_message = [
             "Extract metadata from this document. Return as JSON.",

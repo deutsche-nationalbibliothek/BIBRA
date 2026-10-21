@@ -575,3 +575,187 @@ class TestNuExtractBackendExtraHeaders:
 
         kwargs = NuExtractBackend.build_config(project)
         assert kwargs["global_cfg"].extra_headers == {"X-Title": "BIBRA"}
+
+
+from bibra.backend.nuextract import _build_field_instructions, _build_instructions
+
+
+class TestBuildFieldInstructions:  
+    """Tests for the _build_field_instructions function."""
+    def test_includes_header(self):
+        """Test that _build_field_instructions includes the expected header."""
+        result = _build_field_instructions()
+
+        assert result.startswith(
+            "Use the following field definitions and extraction rules:"
+        )
+
+
+    def test_correct_output(self, monkeypatch):
+        """Test _build_field_instructions function for correct output."""
+        monkeypatch.setattr(
+            PublicationMetadata,
+            "model_fields",
+            {
+                "language": type(
+                    "MockField", (), {"description": "The language of the publication."}
+                )(),
+                "title": type(
+                    "MockField", (), {"description": "The title of the publication."}
+                )(),
+                "creator": type(
+                    "MockField", (), {"description": "The creator of the publication."}
+                )(),
+                "additional_creators": type(
+                    "MockField",
+                    (),
+                    {"description": "Additional creators of the publication."},
+                )(),
+            },
+        )
+
+        expected_output = (
+            "Use the following field definitions and extraction rules:\n"
+            "- language: The language of the publication.\n"
+            "- title: The title of the publication.\n"
+            "- creator: The creator of the publication.\n"
+            "- additional_creators: Additional creators of the publication."
+        )  
+
+        output = _build_field_instructions()
+        assert output == expected_output
+
+    def test_skips_fields_without_descriptions(self, monkeypatch):
+        """Test that _build_field_instructions skips fields without descriptions."""
+        monkeypatch.setattr(
+            PublicationMetadata,
+            "model_fields",
+            {
+                "title": type(
+                    "MockField", (), {"description": "The main title"},
+                )(),
+                "unknown_field": type(
+                    "MockField", (), {"description": None},
+                )(),
+                "empty_field": type(
+                    "MockField", (), {"description": ""},
+                )(),
+                "only_whitespaces_field": type(
+                    "MockField", (), {"description": "     "},
+                )(),
+            },
+        )
+
+        result = _build_field_instructions()
+
+        assert "- title: The main title" in result
+        assert "- unknown_field:" not in result
+        assert "- empty_field:" not in result
+        assert "- only_whitespaces_field:" not in result
+
+    def test_no_descritptions_in_metadata(self, monkeypatch):
+        """Test that _build_field_instructions skips fields without descriptions."""
+        monkeypatch.setattr(
+            PublicationMetadata,
+            "model_fields",
+            {
+                "title": type(
+                    "MockField", (), {"description": ""},
+                )(),
+                "unknown_field": type(
+                    "MockField", (), {"description": None},
+                )(),
+            },
+        )
+
+        result = _build_field_instructions()
+
+        assert result == ""
+        
+
+class TestBuildInstructions:
+    """Tests for the _build_instructions function."""
+
+    def test_combines_general_and_field_instructions(self):
+        """Test _build_instructions merges general and field instructions correctly."""
+        result = _build_instructions(
+            general_instructions="Extract only explicitly stated metadata.",
+            field_instructions="title: The main title.",
+        )
+
+        assert result == (
+            "Extract only explicitly stated metadata.\n\n"
+            "title: The main title."
+        )
+
+    def test_empty_general_instructions(self):
+        """Test _build_instructions handles empty general instructions."""
+        result = _build_instructions(
+            general_instructions="",
+            field_instructions="Field definitions.",
+        )
+
+        assert result == "Field definitions."
+
+    def test_empty_field_instructions(self):
+        """Test _build_instructions handles empty general instructions."""
+        result = _build_instructions(
+            general_instructions="General instructions.",
+            field_instructions="",
+        )
+
+        assert result == "General instructions."
+
+    def test_build_instructions_with_both_empty(self):
+        """Test _build_instructions returns empty string when both inputs are empty."""
+        result = _build_instructions(
+            general_instructions="",
+            field_instructions="",
+        )
+
+        assert result == ""
+
+    def test_preserves_field_instructions(self):
+        """Test that _build_instructions preserves field instructions."""
+        field_instructions = (
+            "Use ISO 639-2 language codes.\n"
+            "- title: Preserve the original language."
+        )
+
+        result = _build_instructions("", field_instructions)
+
+        assert result == field_instructions
+
+    def test_build_instructions_with_whitespace(self):
+        """Test _build_instructions trims whitespace from inputs."""
+        result = _build_instructions(
+            general_instructions="   General instructions.   ",
+            field_instructions="   Field instructions.   ",
+        )
+
+        assert result == "General instructions.\n\nField instructions."
+
+    def test_whitespace_general_instructions(self):
+        """Test _build_instructions handles whitespace-only general instructions."""
+        result = _build_instructions(
+            general_instructions="   \n ",
+            field_instructions="Field definitions",
+        )
+
+        assert result == "Field definitions"
+
+    @pytest.mark.parametrize(
+    ("general", "fields"),
+    [
+        ("", ""),
+        ("   ", ""),
+        ("", "   "),
+        ("  ", "  "),
+    ],
+    )
+    def test_both_empty_or_whitespace(self, general, fields):
+        result = _build_instructions(general, fields)
+
+        assert result == ""
+
+    
