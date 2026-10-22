@@ -103,13 +103,13 @@ class PublicationMetadata(BaseModel):
         default=None,
         description="The year in which the publication was published. Do not confuse it with the publication year of the original work, reprint year, or year of translation. If no publication year is stated but a copyright year is available, return the copyright year in square brackets, for example [2024]. Return null if no year can be determined."
         )
-    publication_place: str | None = Field(
-        default=None,
-        description="The place of publication, typically a city or town. Extract the city/place associated with the publisher in the publication statement. Extract the place as presented in the publication. Preserve the source language. Return null if no publication place can be determined."
-        )
-    publisher: list[str] = Field(
+    publication_place: list[str] | None = Field(
         default=list,
-        description="The publishing entity responsible for publishing the specific publication. Extract each publisher's name as presented in the publication. Prefer the publisher name shown on the title page over publisher name given in the imprint. Preserve the source language and letter case. If multiple publishers are explicitly credited, extract each publisher separately. Return an empty list if no publisher can be determined."
+        description="The place of publication, typically a city or town. Extract the city/place associated with the publisher in the publication statement. Extract the place as presented in the publication. Preserve the source language. Return an empty list if no publication place can be determined."
+        )
+    publisher: str = Field(
+        default=str,
+        description="The publishing entity responsible for publishing the specific publication. Prefer the publisher name as presented on the title page over publisher name given in the imprint. Preserve the source language and letter case. Return null if no publisher can be determined."
         )
     edition: str | None = Field(
         default=None,
@@ -133,8 +133,8 @@ NUEXTRACT_TEMPLATE = {
     "p_isbn": ["string"],
     "language_publication": "language",
     "year": "date",
-    "publication_place": "string",
-    "publisher": ["string"],
+    "publication_place": ["string"],
+    "publisher": "string",
     "edition": "string",
     "page_extent": "string"
 }

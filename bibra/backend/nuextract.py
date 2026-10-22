@@ -218,6 +218,9 @@ class NuExtractBackend(BaseBackend[NuExtractConfig]):
         if instructions:
             chat_template_kwargs["instructions"] = instructions
 
+        # if self.cfg.instructions:
+        #     chat_template_kwargs["instructions"] = self.cfg.instructions
+
         user_message = [
             "Extract metadata from this document. Return as JSON.",
             *image_contents,
